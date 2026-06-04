@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: expense-tracker-auth
+  profiles:
+    active: dev # Run with in-memory H2 database by default
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID:github-dummy-client-id}
+            client-secret: ${GITHUB_CLIENT_SECRET:github-dummy-client-secret}
+            scope: read:user,user:email
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:google-dummy-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:google-dummy-client-secret}
+            scope: openid,profile,email
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID:facebook-dummy-client-id}
+            client-secret: ${FACEBOOK_CLIENT_SECRET:facebook-dummy-client-secret}
+            scope: email,public_profile
+
+server:
+  port: 9000
+
+# Endpoint documentation details
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

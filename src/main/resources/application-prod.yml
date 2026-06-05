@@ -31,7 +31,20 @@ spring:
 
 app:
   auth:
+    issuer-uri: ${AUTH_ISSUER_URI:http://localhost:9000}
     verification-base-url: ${VERIFICATION_BASE_URL:http://localhost:9000/verify-email}
+    jwk-set-location: ${JWK_SET_LOCATION:}
+    client:
+      enabled: ${AUTH_CLIENT_ENABLED:false}
+      client-id: ${AUTH_CLIENT_ID:expense-tracker-web}
+      client-secret: ${AUTH_CLIENT_SECRET:change-me-client-secret}
+      public-client: ${AUTH_CLIENT_PUBLIC_CLIENT:true}
+      redirect-uris: ${AUTH_CLIENT_REDIRECT_URIS:http://localhost:5173/auth/callback}
+      post-logout-redirect-uris: ${AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS:http://localhost:5173}
+      scopes: ${AUTH_CLIENT_SCOPES:openid,profile}
+
+  cors:
+    allowed-origin-patterns: ${ALLOWED_ORIGIN_PATTERNS:http://localhost:5173}
 
 management:
   endpoints:

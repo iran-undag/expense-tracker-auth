@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-expense_tracker_auth}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
+    volumes:
+      - auth-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - expensetracker-net
+
+  auth:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-expense_tracker_auth}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      AUTH_ISSUER_URI: ${AUTH_ISSUER_URI:-http://localhost:9000}
+      VERIFICATION_BASE_URL: ${VERIFICATION_BASE_URL:-http://localhost:9000/verify-email}
+      ALLOWED_ORIGIN_PATTERNS: ${ALLOWED_ORIGIN_PATTERNS:-http://localhost:5173}
+      JWK_SET_LOCATION: ${JWK_SET_LOCATION:-}
+      AUTH_CLIENT_ENABLED: ${AUTH_CLIENT_ENABLED:-true}
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:-expense-tracker-web}
+      AUTH_CLIENT_SECRET: ${AUTH_CLIENT_SECRET:-change-me-client-secret}
+      AUTH_CLIENT_PUBLIC_CLIENT: ${AUTH_CLIENT_PUBLIC_CLIENT:-true}
+      AUTH_CLIENT_REDIRECT_URIS: ${AUTH_CLIENT_REDIRECT_URIS:-http://localhost:5173/auth/callback}
+      AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS: ${AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS:-http://localhost:5173}
+      AUTH_CLIENT_SCOPES: ${AUTH_CLIENT_SCOPES:-openid,profile}
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318/v1/traces}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./logs:/app/logs
+      - ./secrets:/app/secrets:ro
+    networks:
+      - expensetracker-net
+
+volumes:
+  auth-pgdata:
+
+networks:
+  expensetracker-net:
+    driver: bridge

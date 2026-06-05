@@ -1,0 +1,9 @@
+target/
+.git/
+.github/
+.vscode/
+.agents/
+.codex/
+logs/
+secrets/
+*.log

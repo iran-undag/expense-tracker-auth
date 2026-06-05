@@ -4,7 +4,6 @@ com/example/auth/repository/RoleRepository.class
 com/example/auth/config/CorsConfig.class
 com/example/auth/AuthApplication.class
 com/example/auth/config/ObservabilityConfig.class
-com/example/auth/config/AuthorizationServerConfig.class
 com/example/auth/service/EmailService.class
 com/example/auth/config/oauth2/GitHubOAuth2UserInfo.class
 com/example/auth/dto/ApiError$ApiErrorBuilder.class
@@ -30,8 +29,8 @@ com/example/auth/dto/UserProfile$UserProfileBuilder.class
 com/example/auth/config/SecurityConfig.class
 com/example/auth/dto/SignupRequest$SignupRequestBuilder.class
 com/example/auth/controller/AuthPageController.class
-com/example/auth/config/oauth2/GoogleOAuth2UserInfo.class
 com/example/auth/controller/AdminController.class
+com/example/auth/config/oauth2/GoogleOAuth2UserInfo.class
 com/example/auth/dto/UserProfile.class
 com/example/auth/service/AuthService.class
 com/example/auth/exception/EmailNotVerifiedException.class

@@ -2,6 +2,7 @@ package com.example.auth.service;
 
 import com.example.auth.dto.SignupRequest;
 import com.example.auth.exception.EmailAlreadyExistsException;
+import com.example.auth.exception.TokenExpiredException;
 import com.example.auth.model.AppUser;
 import com.example.auth.model.Role;
 import com.example.auth.repository.AppUserRepository;
@@ -13,7 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +46,8 @@ public class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(authService, "verificationTokenExpirationHours", 24L);
+
         signupRequest = SignupRequest.builder()
             .email("test@example.com")
             .displayName("Test User")
@@ -79,6 +84,7 @@ public class AuthServiceImplTest {
         assertFalse(registeredUser.isEnabled());
         assertFalse(registeredUser.isEmailVerified());
         assertNotNull(registeredUser.getVerificationToken());
+        assertNotNull(registeredUser.getVerificationTokenCreatedAt());
 
         verify(emailService, times(1)).sendVerificationEmail(eq("test@example.com"), anyString());
     }
@@ -102,6 +108,7 @@ public class AuthServiceImplTest {
             .enabled(false)
             .emailVerified(false)
             .verificationToken("token-123")
+            .verificationTokenCreatedAt(LocalDateTime.now().minusHours(1))
             .build();
 
         when(userRepository.findByVerificationToken("token-123")).thenReturn(Optional.of(unverifiedUser));
@@ -114,6 +121,28 @@ public class AuthServiceImplTest {
         assertTrue(unverifiedUser.isEnabled());
         assertTrue(unverifiedUser.isEmailVerified());
         assertNull(unverifiedUser.getVerificationToken());
+        assertNull(unverifiedUser.getVerificationTokenCreatedAt());
         verify(userRepository, times(1)).save(unverifiedUser);
+    }
+
+    @Test
+    void verifyEmail_ThrowsWhenTokenExpired() {
+        AppUser unverifiedUser = AppUser.builder()
+            .email("test@example.com")
+            .enabled(false)
+            .emailVerified(false)
+            .verificationToken("token-123")
+            .verificationTokenCreatedAt(LocalDateTime.now().minusHours(25))
+            .build();
+
+        when(userRepository.findByVerificationToken("token-123")).thenReturn(Optional.of(unverifiedUser));
+        when(userRepository.save(any(AppUser.class))).thenReturn(unverifiedUser);
+
+        assertThrows(TokenExpiredException.class, () -> authService.verifyEmail("token-123"));
+        assertFalse(unverifiedUser.isEnabled());
+        assertFalse(unverifiedUser.isEmailVerified());
+        assertNull(unverifiedUser.getVerificationToken());
+        assertNull(unverifiedUser.getVerificationTokenCreatedAt());
+        verify(userRepository).save(unverifiedUser);
     }
 }

@@ -1,0 +1,83 @@
+# Maven
+/target
+dependency-reduced-pom.xml
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+releases/
+
+# Spring Boot
+/logs
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE - IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.DS_Store
+
+# IDE - VS Code
+.vscode/
+*.code-workspace
+
+# IDE - Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+*.jks
+
+# IDE - Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# IDE - NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+
+# Build artifacts
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.#*
+
+# Testing
+.pytest_cache/
+test-results/
+
+# Docker
+.docker/
+*.containerignore
+
+# Logs
+*.log
+logs/
+*.stackdump
+
+# Temporary files
+.tmp/
+tmp/
+*.temp

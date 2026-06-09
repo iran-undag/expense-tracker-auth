@@ -1,2 +1,4 @@
+/home/user/Documents/vscode-workspace/expense-tracker-auth/src/test/java/com/example/auth/config/AdminAccountInitializerTest.java
+/home/user/Documents/vscode-workspace/expense-tracker-auth/src/test/java/com/example/auth/config/SecurityProfileGuardTest.java
 /home/user/Documents/vscode-workspace/expense-tracker-auth/src/test/java/com/example/auth/controller/AuthIntegrationTest.java
 /home/user/Documents/vscode-workspace/expense-tracker-auth/src/test/java/com/example/auth/service/AuthServiceImplTest.java

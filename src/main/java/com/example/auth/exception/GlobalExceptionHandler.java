@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleEmailNotVerified(EmailNotVerifiedException ex, WebRequest request) {
         log.warn("Unverified access attempt: {}", ex.getMessage());
         return createErrorResponse(HttpStatus.FORBIDDEN, "Email Not Verified", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiError> handleTokenExpired(TokenExpiredException ex, WebRequest request) {
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Token Expired", ex.getMessage(), request);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -59,6 +65,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
         return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex, WebRequest request) {
+        return createErrorResponse(HttpStatus.NOT_FOUND, "Not Found", "Resource not found", request);
     }
 
     @ExceptionHandler(Exception.class)

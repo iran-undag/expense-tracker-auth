@@ -1,4 +1,14 @@
 services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - expensetracker-net
+
   db:
     image: postgres:15-alpine
     environment:
@@ -26,7 +36,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-change-me}
       AUTH_ISSUER_URI: ${AUTH_ISSUER_URI:-http://localhost:9000}
       VERIFICATION_BASE_URL: ${VERIFICATION_BASE_URL:-http://localhost:9000/verify-email}
-      ALLOWED_ORIGIN_PATTERNS: ${ALLOWED_ORIGIN_PATTERNS:-http://localhost:5173}
+      ALLOWED_ORIGIN_PATTERNS: ${ALLOWED_ORIGIN_PATTERNS:?Set ALLOWED_ORIGIN_PATTERNS to your frontend origin}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       JWK_SET_LOCATION: ${JWK_SET_LOCATION:-}
       AUTH_CLIENT_ENABLED: ${AUTH_CLIENT_ENABLED:-true}
       AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:-expense-tracker-web}
@@ -43,8 +55,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "9000:9000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./logs:/app/logs
       - ./secrets:/app/secrets:ro

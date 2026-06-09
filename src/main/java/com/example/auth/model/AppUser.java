@@ -39,6 +39,9 @@ public class AppUser {
     @Column(name = "verification_token")
     private String verificationToken;
 
+    @Column(name = "verification_token_created_at")
+    private LocalDateTime verificationTokenCreatedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", nullable = false, length = 50)
     private AuthProvider authProvider;

@@ -2,6 +2,7 @@ package com.example.auth.config;
 
 import com.example.auth.service.UserPrincipal;
 import com.example.auth.service.CustomOidcUserPrincipal;
+import com.example.auth.security.TokenBlacklistFilter;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -28,6 +29,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.util.StreamUtils;
@@ -47,7 +49,10 @@ public class AuthorizationServerConfig {
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    public SecurityFilterChain authServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain authServerSecurityFilterChain(
+            HttpSecurity http,
+            TokenBlacklistFilter tokenBlacklistFilter,
+            CorrelationIdFilter correlationIdFilter) throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
@@ -57,6 +62,8 @@ public class AuthorizationServerConfig {
             );
 
         http
+            .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(tokenBlacklistFilter, UsernamePasswordAuthenticationFilter.class)
             // Redirect to formLogin login page if not authenticated on authorization endpoints
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(

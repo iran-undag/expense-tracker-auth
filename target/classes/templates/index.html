@@ -124,6 +124,10 @@
             flex-wrap: wrap;
         }
 
+        .logout-form {
+            display: inline-flex;
+        }
+
         .btn {
             font-family: 'Inter', sans-serif;
             font-weight: 600;
@@ -187,7 +191,10 @@
         </div>
 
         <div class="actions">
-            <a th:if="${authenticated}" href="/logout" class="btn btn-secondary">Sign Out</a>
+            <form th:if="${authenticated}" th:action="@{/logout}" method="post" class="logout-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-secondary">Sign Out</button>
+            </form>
             <a th:unless="${authenticated}" href="/login" class="btn btn-primary">Proceed to Login</a>
             <a href="/swagger-ui.html" class="btn btn-secondary">Explore API docs</a>
         </div>

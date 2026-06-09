@@ -25,12 +25,8 @@ public class EmailService {
     public void sendVerificationEmail(String email, String token) {
         String verificationUrl = verificationBaseUrl + "?token=" + token;
         
-        // Log to console in ALL modes for extremely easy visibility and automated testing
-        log.info("----------------------------------------------------------------");
-        log.info("REGISTRATION VERIFICATION EMAIL FOR: {}", email);
-        log.info("Click the link to verify your email and activate your account:");
-        log.info("URL: {}", verificationUrl);
-        log.info("----------------------------------------------------------------");
+        log.debug("Verification email prepared for {}", email);
+        log.debug("Verification URL pattern: {}?token=[REDACTED]", verificationBaseUrl);
 
         // Send real email if we're not using dummy localhost mailHost and mailSender is present
         if (mailSender != null && !mailHost.equals("localhost")) {

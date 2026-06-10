@@ -6,6 +6,7 @@ import com.example.auth.service.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -23,6 +24,9 @@ public class AuthPageController {
 
     private final AuthService authService;
 
+    @Value("${app.frontend.base-url:http://localhost:5173}")
+    private String frontendBaseUrl;
+
     @GetMapping("/")
     public String home(Authentication authentication, Model model) {
         if (authentication != null && authentication.isAuthenticated()) {
@@ -31,6 +35,7 @@ public class AuthPageController {
         } else {
             model.addAttribute("authenticated", false);
         }
+        model.addAttribute("frontendBaseUrl", frontendBaseUrl);
         return "index";
     }
 
@@ -84,9 +89,11 @@ public class AuthPageController {
             authService.verifyEmail(token);
             model.addAttribute("verified", true);
             model.addAttribute("message", "Your email has been verified successfully. You can now log in!");
+            model.addAttribute("frontendBaseUrl", frontendBaseUrl);
         } catch (Exception e) {
             model.addAttribute("verified", false);
             model.addAttribute("message", "Email verification failed: " + e.getMessage());
+            model.addAttribute("frontendBaseUrl", frontendBaseUrl);
         }
         return "verify-email";
     }

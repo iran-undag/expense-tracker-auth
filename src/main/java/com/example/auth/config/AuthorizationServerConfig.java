@@ -64,6 +64,7 @@ public class AuthorizationServerConfig {
         http
             .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(tokenBlacklistFilter, UsernamePasswordAuthenticationFilter.class)
+            .cors(Customizer.withDefaults())
             // Redirect to formLogin login page if not authenticated on authorization endpoints
             .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(

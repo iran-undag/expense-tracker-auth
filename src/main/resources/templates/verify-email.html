@@ -110,6 +110,7 @@
             transform: translateY(-1px);
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/auth-pages.css}">
 </head>
 <body>
     <div class="card">
@@ -122,7 +123,7 @@
             </div>
             <div class="status-title">Account Verified</div>
             <div class="status-msg" th:text="${message}">Your email has been verified successfully.</div>
-            <a href="/login" class="btn-action">Proceed to Sign In</a>
+            <a th:href="${frontendBaseUrl}" class="btn-action">Continue to Expense Tracker</a>
         </div>
 
         <!-- Failure Mode -->

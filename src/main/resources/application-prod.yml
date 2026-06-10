@@ -25,9 +25,9 @@ spring:
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${SMTP_AUTH:false}
           starttls:
-            enable: true
+            enable: ${SMTP_STARTTLS_ENABLE:false}
 
   data:
     redis:
@@ -46,7 +46,7 @@ app:
       client-secret: ${AUTH_CLIENT_SECRET:change-me-client-secret}
       public-client: ${AUTH_CLIENT_PUBLIC_CLIENT:true}
       redirect-uris: ${AUTH_CLIENT_REDIRECT_URIS:http://localhost:5173/auth/callback}
-      post-logout-redirect-uris: ${AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS:http://localhost:5173}
+      post-logout-redirect-uris: ${AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS:http://localhost:5173/logout}
       scopes: ${AUTH_CLIENT_SCOPES:openid,profile}
 
   cors:
@@ -77,6 +77,11 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
+  health:
+    mail:
+      enabled: ${MAIL_HEALTH_ENABLED:false}
+  tracing:
+    enabled: ${TRACING_ENABLED:false}
   otlp:
     tracing:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}

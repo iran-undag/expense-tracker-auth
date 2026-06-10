@@ -171,6 +171,7 @@
             color: var(--text-muted);
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/auth-pages.css}">
 </head>
 <body>
     <div class="container">
@@ -195,7 +196,8 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit" class="btn btn-secondary">Sign Out</button>
             </form>
-            <a th:unless="${authenticated}" href="/login" class="btn btn-primary">Proceed to Login</a>
+            <a th:if="${authenticated}" th:href="${frontendBaseUrl}" class="btn btn-primary">Open Expense Tracker</a>
+            <a th:unless="${authenticated}" th:href="${frontendBaseUrl}" class="btn btn-primary">Open Expense Tracker</a>
             <a href="/swagger-ui.html" class="btn btn-secondary">Explore API docs</a>
         </div>
 

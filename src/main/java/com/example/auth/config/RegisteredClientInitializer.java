@@ -36,7 +36,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
             @Value("${app.auth.client.client-secret:change-me-client-secret}") String clientSecret,
             @Value("${app.auth.client.public-client:false}") boolean publicClient,
             @Value("${app.auth.client.redirect-uris:https://oauth.pstmn.io/v1/callback}") String redirectUris,
-            @Value("${app.auth.client.post-logout-redirect-uris:http://localhost:5173}") String postLogoutRedirectUris,
+            @Value("${app.auth.client.post-logout-redirect-uris:http://localhost:5173/logout}") String postLogoutRedirectUris,
             @Value("${app.auth.client.scopes:openid,profile}") String scopes) {
         this.registeredClientRepository = registeredClientRepository;
         this.passwordEncoder = passwordEncoder;
@@ -51,11 +51,17 @@ public class RegisteredClientInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (!enabled || registeredClientRepository.findByClientId(clientId) != null) {
+        if (!enabled) {
             return;
         }
 
-        RegisteredClient.Builder builder = RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient existingClient = registeredClientRepository.findByClientId(clientId);
+        String registrationId = existingClient != null ? existingClient.getId() : UUID.randomUUID().toString();
+        registeredClientRepository.save(buildClient(registrationId));
+    }
+
+    private RegisteredClient buildClient(String registrationId) {
+        RegisteredClient.Builder builder = RegisteredClient.withId(registrationId)
             .clientId(clientId)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN);
@@ -79,7 +85,7 @@ public class RegisteredClientInitializer implements ApplicationRunner {
         splitCsv(postLogoutRedirectUris).forEach(builder::postLogoutRedirectUri);
         splitCsv(scopes).forEach(scope -> builder.scope(normalizeScope(scope)));
 
-        registeredClientRepository.save(builder.build());
+        return builder.build();
     }
 
     private static Iterable<String> splitCsv(String value) {

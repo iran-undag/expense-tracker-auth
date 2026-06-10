@@ -50,11 +50,14 @@ public class SecurityConfig {
     @Value("${spring.h2.console.enabled:false}")
     private boolean h2ConsoleEnabled;
 
+    @Value("${app.frontend.base-url:http://localhost:5173}")
+    private String frontendBaseUrl;
+
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         SavedRequestAwareAuthenticationSuccessHandler savedRequestSuccessHandler =
             new SavedRequestAwareAuthenticationSuccessHandler();
-        savedRequestSuccessHandler.setDefaultTargetUrl("/");
+        savedRequestSuccessHandler.setDefaultTargetUrl(frontendBaseUrl);
 
         http
             .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
@@ -106,7 +109,7 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService)
                     .oidcUserService(customOidcUserService)
                 )
-                .defaultSuccessUrl("/", true)
+                .defaultSuccessUrl(frontendBaseUrl, false)
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")

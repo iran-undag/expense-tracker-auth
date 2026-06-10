@@ -30,6 +30,8 @@ server:
   port: 9000
 
 app:
+  frontend:
+    base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
   admin:
     bootstrap:
       enabled: ${ADMIN_BOOTSTRAP_ENABLED:false}

@@ -270,17 +270,24 @@ DB_PASSWORD=<strong-password>
 ALLOWED_ORIGIN_PATTERNS=https://your-frontend.example.com
 AUTH_ISSUER_URI=https://auth.example.com
 VERIFICATION_BASE_URL=https://auth.example.com/verify-email
+FRONTEND_BASE_URL=https://your-frontend.example.com
 
 SMTP_HOST=<smtp-host>
 SMTP_PORT=587
 SMTP_USERNAME=<smtp-user>
 SMTP_PASSWORD=<smtp-password>
+SMTP_AUTH=true
+SMTP_STARTTLS_ENABLE=true
+MAIL_HEALTH_ENABLED=true
+
+TRACING_ENABLED=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
 
 AUTH_CLIENT_ENABLED=true
 AUTH_CLIENT_ID=expense-tracker-web
 AUTH_CLIENT_PUBLIC_CLIENT=true
 AUTH_CLIENT_REDIRECT_URIS=https://your-frontend.example.com/auth/callback
-AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS=https://your-frontend.example.com
+AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS=https://your-frontend.example.com/logout
 AUTH_CLIENT_SCOPES=openid,profile
 
 REDIS_HOST=redis
@@ -294,6 +301,10 @@ ADMIN_BOOTSTRAP_RESET_PASSWORD=false
 ```
 
 `ALLOWED_ORIGIN_PATTERNS` is required in production. Wildcards such as `*` are rejected at startup.
+
+`FRONTEND_BASE_URL` is used as the fallback destination after a direct auth login or successful email verification. The normal OIDC flow still redirects to the saved `/auth/callback` request when login starts from the frontend.
+
+`AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS` must include the frontend logout page. For the local Vue frontend, use `http://localhost:5173/logout`.
 
 Admin bootstrap notes:
 - Leave `ADMIN_BOOTSTRAP_ENABLED=false` after the first successful deployment if you do not want startup to keep checking/promoting the account.
@@ -334,6 +345,24 @@ Health endpoint:
 
 ```bash
 curl -i http://localhost:9000/actuator/health
+```
+
+### Refresh Local Prod Database
+
+This deletes the local auth PostgreSQL volume. Use only when you intentionally want to remove all local prod auth users, clients, authorization records, and audit data.
+
+Check the volume name first:
+
+```bash
+docker volume ls | grep expense-tracker-auth
+```
+
+Then refresh from the `expense-tracker-auth` directory:
+
+```bash
+docker compose --env-file .env down
+docker volume rm expense-tracker-auth_auth-pgdata
+docker compose --env-file .env up --build -d
 ```
 
 ### 4. Production Manual Smoke Test
@@ -522,9 +551,44 @@ Do not use `*`.
 ### Verification Email Not Received
 
 - Check `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, and `SMTP_PASSWORD`.
+- For Gmail, use an app password and set `SMTP_AUTH=true`, `SMTP_STARTTLS_ENABLE=true`, and `MAIL_HEALTH_ENABLED=true`.
+- For local prod integration without real email, use `SMTP_HOST=localhost`, `SMTP_PORT=1025`, blank SMTP credentials, `SMTP_AUTH=false`, `SMTP_STARTTLS_ENABLE=false`, and `MAIL_HEALTH_ENABLED=false`.
 - Check `VERIFICATION_BASE_URL`.
 - Inspect `docker compose logs auth`.
 - In dev only, inspect H2 for `verification_token`.
+
+For local `prod` integration with dummy SMTP, activate a test account by reading the verification token from PostgreSQL and calling the normal verify endpoint:
+
+```bash
+docker compose --env-file .env exec db psql \
+  -U postgres \
+  -d expense_tracker_auth \
+  -c "SELECT email, verification_token, verification_token_created_at, email_verified FROM app_users WHERE email = 'your-email@example.com';"
+```
+
+Open the web verification page:
+
+```text
+http://localhost:9000/verify-email?token=<verification-token>
+```
+
+Or call the REST endpoint:
+
+```bash
+curl -i "http://localhost:9000/api/auth/verify-email?token=<verification-token>"
+```
+
+If the token expired, generate a new one and query the database again:
+
+```bash
+curl -i -X POST "http://localhost:9000/api/auth/resend-verification?email=your-email@example.com"
+```
+
+After verification, open the frontend and click **Continue with SSO**. A direct login on the auth service creates an auth-server session, but the frontend still needs to start the OIDC flow to receive its access token.
+
+### OTLP Export Fails on `localhost:4318`
+
+Set `TRACING_ENABLED=false` for local prod integration without an OpenTelemetry Collector. If you run a collector, set `TRACING_ENABLED=true` and point `OTEL_EXPORTER_OTLP_ENDPOINT` to a container-reachable collector URL.
 
 ### Account Locked
 

@@ -23,6 +23,11 @@ public class FacebookOAuth2UserInfo extends OAuth2UserInfo {
         return (String) attributes.get("email");
     }
 
+    @Override
+    public boolean isEmailVerified() {
+        return Boolean.TRUE.equals(attributes.get("verified"));
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public String getImageUrl() {

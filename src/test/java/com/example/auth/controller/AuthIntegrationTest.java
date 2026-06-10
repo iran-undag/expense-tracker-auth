@@ -198,6 +198,19 @@ public class AuthIntegrationTest {
     }
 
     @Test
+    void actuatorHealth_shouldRemainPublic() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(header().doesNotExist("Location"));
+    }
+
+    @Test
+    void apiDocs_shouldRequireAuthentication() throws Exception {
+        mockMvc.perform(get("/v3/api-docs").accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void loginFormPostWithNullOrigin_shouldNotBeRejectedByCors() throws Exception {
         mockMvc.perform(post("/login")
                 .header("Origin", "null")
@@ -209,7 +222,7 @@ public class AuthIntegrationTest {
     }
 
     @Test
-    void directSuccessfulLogin_shouldRedirectToHome() throws Exception {
+    void directSuccessfulLogin_shouldRedirectToFrontend() throws Exception {
         createUser("direct-login@example.com", "USER", "SecurePass123!");
 
         mockMvc.perform(post("/login")
@@ -217,7 +230,7 @@ public class AuthIntegrationTest {
                 .param("password", "SecurePass123!")
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/"));
+            .andExpect(redirectedUrl("http://localhost:5173"));
     }
 
     @Test

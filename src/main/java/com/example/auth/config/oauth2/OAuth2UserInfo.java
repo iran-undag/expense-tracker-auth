@@ -19,5 +19,9 @@ public abstract class OAuth2UserInfo {
 
     public abstract String getEmail();
 
+    public boolean isEmailVerified() {
+        return false;
+    }
+
     public abstract String getImageUrl();
 }

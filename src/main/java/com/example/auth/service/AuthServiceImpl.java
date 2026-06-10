@@ -134,12 +134,10 @@ public class AuthServiceImpl implements AuthService {
             return userRepository.save(existingUser);
         }
 
+        requireVerifiedProviderEmail(registrationId, userInfo);
+
         // Email from external provider
         String email = userInfo.getEmail();
-        if (email == null || email.isBlank()) {
-            // Fallback for providers that don't return public emails (like some GitHub accounts)
-            email = userInfo.getId() + "@" + registrationId.toLowerCase() + ".com";
-        }
 
         // If email already registered locally or via another provider
         Optional<AppUser> userByEmailOptional = userRepository.findByEmail(email);
@@ -171,5 +169,12 @@ public class AuthServiceImpl implements AuthService {
         AppUser savedUser = userRepository.save(newUser);
         log.info("Created new social login user: {} via {}", email, registrationId);
         return savedUser;
+    }
+
+    private static void requireVerifiedProviderEmail(String registrationId, OAuth2UserInfo userInfo) {
+        String email = userInfo.getEmail();
+        if (email == null || email.isBlank() || !userInfo.isEmailVerified()) {
+            throw new IllegalArgumentException("Login with " + registrationId + " requires a verified email address.");
+        }
     }
 }

@@ -1,9 +1,11 @@
 package com.example.auth.service;
 
+import com.example.auth.config.oauth2.GoogleOAuth2UserInfo;
 import com.example.auth.dto.SignupRequest;
 import com.example.auth.exception.EmailAlreadyExistsException;
 import com.example.auth.exception.TokenExpiredException;
 import com.example.auth.model.AppUser;
+import com.example.auth.model.AuthProvider;
 import com.example.auth.model.Role;
 import com.example.auth.repository.AppUserRepository;
 import com.example.auth.repository.RoleRepository;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -144,5 +147,44 @@ public class AuthServiceImplTest {
         assertNull(unverifiedUser.getVerificationToken());
         assertNull(unverifiedUser.getVerificationTokenCreatedAt());
         verify(userRepository).save(unverifiedUser);
+    }
+
+    @Test
+    void findOrCreateOAuth2User_RejectsUnverifiedProviderEmail() {
+        GoogleOAuth2UserInfo userInfo = new GoogleOAuth2UserInfo(Map.of(
+            "sub", "google-123",
+            "name", "Social User",
+            "email", "social@example.com",
+            "email_verified", false
+        ));
+
+        when(userRepository.findByAuthProviderAndProviderId(AuthProvider.GOOGLE, "google-123")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> authService.findOrCreateOAuth2User("google", userInfo));
+        verify(userRepository, never()).findByEmail(anyString());
+        verify(userRepository, never()).save(any(AppUser.class));
+    }
+
+    @Test
+    void findOrCreateOAuth2User_CreatesUserWhenProviderEmailIsVerified() {
+        GoogleOAuth2UserInfo userInfo = new GoogleOAuth2UserInfo(Map.of(
+            "sub", "google-123",
+            "name", "Social User",
+            "email", "social@example.com",
+            "email_verified", true
+        ));
+
+        when(userRepository.findByAuthProviderAndProviderId(AuthProvider.GOOGLE, "google-123")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("social@example.com")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("USER")).thenReturn(Optional.of(userRole));
+        when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AppUser user = authService.findOrCreateOAuth2User("google", userInfo);
+
+        assertEquals("social@example.com", user.getEmail());
+        assertTrue(user.isEnabled());
+        assertTrue(user.isEmailVerified());
+        assertEquals(AuthProvider.GOOGLE, user.getAuthProvider());
+        assertEquals("google-123", user.getProviderId());
     }
 }

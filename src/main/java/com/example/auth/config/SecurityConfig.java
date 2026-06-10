@@ -75,8 +75,10 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/signup", "/verify-email", "/css/**", "/js/**", "/favicon.ico").permitAll()
                 // Allow Spring Boot's error endpoint to render OAuth2 authorization errors instead of saving /error as a post-login target
                 .requestMatchers("/error").permitAll()
-                // H2 Dev Console & Actuator & API Docs
-                .requestMatchers("/h2-console/**", "/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // Health checks remain public; diagnostics and docs require admin access.
+                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").hasRole("ADMIN")
                 // Admin management
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // All other requests require authentication

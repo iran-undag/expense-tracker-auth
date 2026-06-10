@@ -302,6 +302,8 @@ ADMIN_BOOTSTRAP_RESET_PASSWORD=false
 
 `ALLOWED_ORIGIN_PATTERNS` is required in production. Wildcards such as `*` are rejected at startup.
 
+`JWK_SET_LOCATION` is optional for now. Leave it blank unless you already have a valid JWK set file mounted into the auth container. When persistent signing keys are needed in the future, implement the required key-management changes together: generate or provision a valid JWK set, mount it under `./secrets`, set `JWK_SET_LOCATION` to a `file:/app/secrets/...` resource path, and add startup validation once that operational flow exists.
+
 `FRONTEND_BASE_URL` is used as the fallback destination after a direct auth login or successful email verification. The normal OIDC flow still redirects to the saved `/auth/callback` request when login starts from the frontend.
 
 `AUTH_CLIENT_POST_LOGOUT_REDIRECT_URIS` must include the frontend logout page. For the local Vue frontend, use `http://localhost:5173/logout`.
@@ -340,6 +342,7 @@ Expected startup behavior:
 - Redis-backed rate limiting is enabled
 - Token blacklist is enabled
 - CORS validation rejects blank or wildcard origins
+- `/actuator/health` is public; other actuator endpoints and OpenAPI docs require admin access
 
 Health endpoint:
 
